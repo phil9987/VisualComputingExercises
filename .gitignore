@@ -37,4 +37,4 @@ ehthumbs.db
 Thumbs.db
 
 ## Don't want videos on github ##
-.avi
+*.avi
