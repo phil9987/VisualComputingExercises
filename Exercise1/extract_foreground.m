@@ -1,40 +1,58 @@
 function [  ] = extract_foreground(  )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
+    iterations = 10;
     v = VideoReader('bluescreen.avi');
     frame1 = readFrame(v);  % read first frame
-    whos frame1             % print available infos about frame
     imshow(frame1);         % show first frame for pixel-selection
-    [x,y] = ginput(1);      % let user select a background-pixel
+    [n,m,k] = size(frame1);  % shape of image
+    frame1Doubles = im2double(frame1);    % reformat matrix to doubles
+    
+    [x,y] = ginput(iterations);      % let user select background-pixels
+    % x and y are of size iterations*1
     x = cast(x, 'uint64');  % cast from double to int
     y = cast(y, 'uint64'); 
-    color = frame1(y,x,:);  % get color of selected pixel
-    color = squeeze(color) % remove singleton dimensions
-    color = im2double(color);
-    frame1d = im2double(frame1);
     
-    background = ones(size(frame1), 'double');
-    background(:,:,1) = color(1);
-    background(:,:,2) = color(2);
-    background(:,:,3) = color(3);
+    % userSamples represents an array of RGB values the user has picked
+    % preallocate to save space and time
+    userSamples = ones(iterations,3);
+    for i=1:iterations
+        userSamples(i,:) = frame1(y(i),x(i),:);
+    end
     
-    D = frame1d - background;
-    E = sqrt(sum(D.^2,3));
+    userSamplesDoubles = im2double(userSamples);
+    % meanValue: 1*3, covariance: 3*3
+    meanValues = reshape(mean(userSamplesDoubles),[3,1]);
+    invertedCovariance = pinv(cov(userSamplesDoubles));
     
-    size(E)
-    %E = D(:,:,1) + D(:,:,2) + D(:,:,3);
-    mask = E < 0.5;         % calculate mask from selected pixel
+    mahaDistanceMatrix = ones(n,m);
+    % there ought to be a more matlab way to do this
+    for i=1:n
+        for j=1:m
+            aux = reshape(frame1Doubles(i,j,:), [3,1]);
+            diff = aux - meanValues;
+            mahaDistanceMatrix(i,j) = diff' * invertedCovariance * diff;
+        end
+    end
+   
+    p1 = mean(mean(mahaDistanceMatrix));
+    % p2 = max(max(mahaDistanceMatrix));
+    % p3 = min(min(mahaDistanceMatrix));
+    
+    % in a mask, 1 represents affirmation of the condition
+    mask = mahaDistanceMatrix < p1;         % calculate mask from selected pixel
     
     surrounding = imread('mask.bmp');
     mask2 = surrounding(:,:,1) < 255;      % get surrounding mask
+    
+    % unify masks
     mask = mask + mask2;                   % if bit > 1 then it is omitted in the picture
-    mask3d = mask;                         % turn mask to 3 dimensions to use find below
+    mask3d = mask;                         % turn mask to 3 dimensions (r,g,b) to use find below
     mask3d(:,:,2) = mask;
     mask3d(:,:,3) = mask;
     frame1(find(mask3d>=1)) = 0;           % set background pixels to (0,0,0) (black)
-    imshow(frame1)
-    
-    
-    
+    imshow(frame1)  
 end
+
+        
 
