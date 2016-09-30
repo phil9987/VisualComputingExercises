@@ -28,7 +28,7 @@ function [  ] = ex1a_extract_foreground(  )
     mask3d(:,:,2) = mask;
     mask3d(:,:,3) = mask;
     frame1 = im2uint8(frame1d.*mask3d);
-    %imshow(frame1)
+    imshow(frame1)
     convert_video('no_bluescreen.avi', frame1, background, mask2, v) 
 end
 function [] = convert_video(filename, frame1, background, mask2, videoreader)
@@ -43,7 +43,7 @@ function [] = convert_video(filename, frame1, background, mask2, videoreader)
         nextFramed = im2double(nextFrame);
         D = nextFramed - background;
         E = sqrt(sum(D.^2,3));
-        mask = E > 0.3;                     % calculate mask from selected pixel
+        mask = E > 0.5;     % calculate mask from selected pixel
         mask = and(mask, mask2);            % if bit > 1 then it is omitted in the picture
         mask3d = mask;                      % turn mask to 3 dimensions to use find below
         mask3d(:,:,2) = mask;
