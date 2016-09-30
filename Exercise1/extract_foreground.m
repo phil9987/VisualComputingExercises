@@ -1,6 +1,7 @@
 function [  ] = extract_foreground(  )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
+
     iterations = 10;
     v = VideoReader('bluescreen.avi');
     frame1 = readFrame(v);  % read first frame
@@ -53,6 +54,7 @@ function [  ] = extract_foreground(  )
     mask3d(:,:,3) = mask;
     frame1(find(mask3d>=1)) = 0;           % set background pixels to (0,0,0) (black)
     imshow(frame1)  
+
 end
 
         
