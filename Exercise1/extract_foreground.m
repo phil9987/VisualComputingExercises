@@ -40,7 +40,8 @@ function [  ] = extract_foreground(  )
     % p3 = min(min(mahaDistanceMatrix));
     
     % in a mask, 1 represents affirmation of the condition
-    mask = mahaDistanceMatrix < p1;         % calculate mask from selected pixel
+    % calculate mask from selected pixel
+    mask = mahaDistanceMatrix <= p1;         %the distances differ extremely heavily per execution, therefore use of a dependent term is advisable
     
     surrounding = imread('mask.bmp');
     mask2 = surrounding(:,:,1) < 255;      % get surrounding mask
